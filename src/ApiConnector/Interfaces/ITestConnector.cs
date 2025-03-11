@@ -7,6 +7,7 @@ internal interface ITestConnector
 	#region Rest
 
 	Task<IEnumerable<Trade>> GetNewTradesAsync(string pair, int maxCount);
+
 	Task<IEnumerable<Candle>> GetCandleSeriesAsync(
 		string pair,
 		int periodInSec,
@@ -16,7 +17,7 @@ internal interface ITestConnector
 
 	#endregion
 
-	
+
 	#region Socket
 
 	event Action<Trade> NewBuyTrade;
@@ -34,6 +35,7 @@ internal interface ITestConnector
 		DateTimeOffset? from = null,
 		DateTimeOffset? to = null,
 		long? count = 0);
+
 	void UnsubscribeCandles(string pair);
 
 	#endregion

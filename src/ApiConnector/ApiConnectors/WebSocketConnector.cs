@@ -3,7 +3,7 @@ using ApiConnector.Models;
 
 namespace ApiConnector.ApiConnectrors;
 
-public class WebSocketConnector : IWebSocketConnector
+public class WebSocketConnector : ApiConnector,  IWebSocketConnector
 {
 	public event Action<Trade> NewBuyTrade;
 	public event Action<Trade> NewSellTrade;
