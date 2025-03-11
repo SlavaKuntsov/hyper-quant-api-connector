@@ -42,4 +42,16 @@ public class Candle
 	///     Время
 	/// </summary>
 	public DateTimeOffset OpenTime { get; set; }
+
+	public override string ToString()
+	{
+		return @$"{nameof(Pair)} - {Pair}
+	{nameof(OpenPrice)}: {OpenPrice}
+	{nameof(HighPrice)}: {HighPrice}
+	{nameof(LowPrice)}: {LowPrice}
+	{nameof(ClosePrice)}: {ClosePrice}
+	{nameof(TotalPrice)}: {TotalPrice}
+	{nameof(TotalVolume)}: {TotalVolume}
+	{nameof(OpenTime)}: {OpenTime}";
+	}
 }

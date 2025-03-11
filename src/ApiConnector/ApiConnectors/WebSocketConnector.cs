@@ -1,7 +1,7 @@
 ﻿using ApiConnector.Interfaces.WebSocket;
 using ApiConnector.Models;
 
-namespace ApiConnector.ApiConnectrors;
+namespace ApiConnector.ApiConnectors;
 
 public class WebSocketConnector : ApiConnector,  IWebSocketConnector
 {
