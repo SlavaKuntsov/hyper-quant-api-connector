@@ -17,7 +17,7 @@ public class RestApiConnector(HttpClient httpClient)
 		int? sort = null,
 		DateTimeOffset? from = null,
 		DateTimeOffset? to = null,
-		long? count = 0) // change default value to null 
+		long? count = 0) // change default value from 0 to null 
 	{
 		var periodInMinutes = periodInSec / 60;
 
@@ -55,7 +55,7 @@ public class RestApiConnector(HttpClient httpClient)
 		if (res.StatusCode == (HttpStatusCode)500)
 			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
 
-		var candlesJson = await ConvertToJsonFromResponseAsync(res);
+		var candlesJson = await ConvertToJsonArrayFromResponseAsync(res);
 
 		var candles = new List<Candle>(candlesJson.Count());
 		// or
@@ -100,7 +100,7 @@ public class RestApiConnector(HttpClient httpClient)
 		if (res.StatusCode == (HttpStatusCode)500)
 			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
 
-		var tradesJson = await ConvertToJsonFromResponseAsync(res);
+		var tradesJson = await ConvertToJsonArrayFromResponseAsync(res);
 
 		// second variant of convert the json response to models
 		// use GetInt64 because we get numbers that exceed the int type limit
@@ -124,19 +124,49 @@ public class RestApiConnector(HttpClient httpClient)
 		return trades;
 	}
 
-	public Task<IEnumerable<Trade>> GetTickerAsync(string pair)
+	public async Task<Ticker> GetTickerAsync(string pair)
 	{
-		throw new NotImplementedException();
+		var res = await _httpClient
+			.GetAsync($"v2/ticker/t{pair}");
+
+		if (res.StatusCode == (HttpStatusCode)500)
+			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
+
+		var tickerJson = await ConvertToDecimalFromResponseAsync(res);
+
+		var ticker = new Ticker
+		{
+			Pair = pair,
+			BidPrice = tickerJson[0],
+			BidSize = tickerJson[1],
+			AskPrice = tickerJson[2],
+			AskSize = tickerJson[3],
+			DailyChange = tickerJson[4],
+			DailyChangeRelative = tickerJson[5],
+			LastPrice = tickerJson[6],
+			Volume = tickerJson[7],
+			High = tickerJson[8],
+			Low = tickerJson[9]
+		};
+
+		Console.WriteLine(ticker.ToString());
+
+		return ticker;
 	}
 
-	private async Task<IEnumerable<JsonElement[]>> ConvertToJsonFromResponseAsync(HttpResponseMessage res)
+	private static async Task<decimal[]> ConvertToDecimalFromResponseAsync(HttpResponseMessage res)
+	{
+		var content = await res.Content.ReadAsStringAsync();
+
+		return JsonSerializer.Deserialize<decimal[]>(content);
+	}
+
+	private static async Task<IEnumerable<JsonElement[]>> ConvertToJsonArrayFromResponseAsync(HttpResponseMessage res)
 	{
 		var content = await res.Content.ReadAsStringAsync();
 
 		// System.Text.Json.JsonException: The JSON value could not be converted to System.Int64
 		// so we need to use JsonElement
-		var tradesJson = JsonSerializer.Deserialize<IEnumerable<JsonElement[]>>(content);
-
-		return tradesJson;
+		return JsonSerializer.Deserialize<IEnumerable<JsonElement[]>>(content);
 	}
 }

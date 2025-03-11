@@ -2,7 +2,6 @@
 
 public class Trade
 {
-
 	/// <summary>
 	///     Валютная пара
 	/// </summary>

@@ -13,4 +13,6 @@ public interface IRestApiConnector
 		long? count = 0);
 
 	Task<IEnumerable<Trade>> GetNewTradesAsync(string pair, int maxCount);
+
+	Task<Ticker> GetTickerAsync(string pair);
 }

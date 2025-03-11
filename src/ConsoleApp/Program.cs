@@ -13,14 +13,15 @@ public static class Program
 
 		var restApiConnector = host.Services.GetRequiredService<IRestApiConnector>();
 
-		await restApiConnector.GetCandleSeriesAsync(
-			"BTCUSD",
-			60,
-			null,
-			DateTimeOffset.UtcNow.AddHours(-2),
-			DateTimeOffset.UtcNow.AddHours(-1),
-			null);
-		await restApiConnector.GetNewTradesAsync("BTCUSD", 5);
+		// await restApiConnector.GetCandleSeriesAsync(
+		// 	"BTCUSD",
+		// 	60,
+		// 	null,
+		// 	DateTimeOffset.UtcNow.AddHours(-2),
+		// 	DateTimeOffset.UtcNow.AddHours(-1),
+		// 	null);
+		// await restApiConnector.GetNewTradesAsync("BTCUSD", 5);
+		await restApiConnector.GetTickerAsync("BTCUSD");
 	}
 
 	private static IHostBuilder CreateHostBuilder(string[] args)
