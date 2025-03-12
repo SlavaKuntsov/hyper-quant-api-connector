@@ -11,15 +11,18 @@ public partial class MainViewModel : ObservableObject
 {
 	private readonly ICryptocurrencyConverter _cryptocurrencyConverter;
 
-	[ObservableProperty] private ObservableCollection<Portfolio> portfolios = new()
-	{
-		new Portfolio { Cryptocurrency = "BTC", Amount = 1, Currency = "USD" },
-		new Portfolio { Cryptocurrency = "USD", Amount = 100_000, Currency = "BTC" },
-		new Portfolio { Cryptocurrency = "XRP", Amount = 15000, Currency = "USD" },
-		// new Portfolio { Cryptocurrency = "XMR", Amount = 50, Currency = "USD" }, // in converter api this coin not found
-		new Portfolio { Cryptocurrency = "ADA", Amount = 30, Currency = "USD" },
-		new Portfolio { Cryptocurrency = "ETH", Amount = 30, Currency = "USD" }
-	};
+	[ObservableProperty]
+	private decimal? portfolioBalance = 0;
+
+	[ObservableProperty]
+	private ObservableCollection<Portfolio> portfolios =
+	[
+		new() { Cryptocurrency = "BTC", Amount = 1, Currency = "USD" },
+		new() { Cryptocurrency = "USD", Amount = 100_000, Currency = "BTC" },
+		new() { Cryptocurrency = "XRP", Amount = 15000, Currency = "USD" },
+		new() { Cryptocurrency = "XMR", Amount = 50, Currency = "USD" },
+		new() { Cryptocurrency = "ETH", Amount = 30, Currency = "USD" }
+	];
 
 	public MainViewModel(ICryptocurrencyConverter cryptocurrencyConverter)
 	{
@@ -36,5 +39,7 @@ public partial class MainViewModel : ObservableObject
 
 		// Оповещаем UI об изменении коллекции (принудительно обновляем список)
 		Portfolios = new ObservableCollection<Portfolio>(Portfolios);
+
+		PortfolioBalance = Portfolios.Sum(p => p.ConvertedValue);
 	}
 }

@@ -12,4 +12,7 @@ public class CurrencyConvertDTO
 
 	[JsonPropertyName("exchange_rate")]
 	public string ExchangeRate { get; set; }
+
+	[JsonPropertyName("error")]
+	public string Error { get; set; }
 }

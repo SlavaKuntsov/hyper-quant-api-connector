@@ -9,12 +9,30 @@
 
         <Grid.RowDefinitions>
             <RowDefinition
+                Height="auto" />
+            <RowDefinition
                 Height="*" />
             <RowDefinition
                 Height="auto" />
         </Grid.RowDefinitions>
 
-        <DataGrid ItemsSource="{Binding Portfolios}" AutoGenerateColumns="False" Margin="10">
+        <StackPanel
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            
+            <Label
+                Margin="0 0 10 0"
+                FontWeight="SemiBold"
+                Content="Portfolio balance:"
+                VerticalAlignment="Center"/>
+            <TextBlock
+                Text="{Binding PortfolioBalance}"
+                VerticalAlignment="Center" />
+
+        </StackPanel>
+
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Portfolios}" AutoGenerateColumns="False" Margin="10">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Cryptocurrency" Binding="{Binding Cryptocurrency}" Width="*" />
                 <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="*" />
@@ -24,11 +42,13 @@
         </DataGrid>
 
 
-        <Button Content="Convert"
-                Command="{Binding ConvertPortfolioCommand}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Bottom"
-                Margin="10" />
+        <Button
+            Grid.Row="2"
+            Content="Convert"
+            Command="{Binding ConvertPortfolioCommand}"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            Margin="10" />
 
     </Grid>
 </Window>

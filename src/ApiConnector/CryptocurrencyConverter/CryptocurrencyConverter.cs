@@ -15,12 +15,12 @@ public class CryptocurrencyConverter(HttpClient httpClient) : ICryptocurrencyCon
 		var res = await _httpClient
 			.GetAsync($"{to}/convert?value={cryptocurrency.Amount}&from={cryptocurrency.Currency}");
 
-		if (res.StatusCode == (HttpStatusCode)500 || res.StatusCode == (HttpStatusCode)400)
-			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
-
 		var content = await res.Content.ReadAsStringAsync();
 
 		var currency = JsonSerializer.Deserialize<CurrencyConvertDTO>(content);
+
+		if (res.StatusCode == (HttpStatusCode)500 || res.StatusCode == (HttpStatusCode)400)
+			throw new HttpRequestException($"Error: {res.StatusCode} - {currency.Error}.");
 
 		// use cultures to avoid exception
 		if (!decimal.TryParse(
