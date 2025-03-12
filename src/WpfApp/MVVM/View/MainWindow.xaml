@@ -5,50 +5,71 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
 
-        <Grid.RowDefinitions>
-            <RowDefinition
-                Height="auto" />
-            <RowDefinition
-                Height="*" />
-            <RowDefinition
-                Height="auto" />
-        </Grid.RowDefinitions>
+    <TabControl>
+        <TabItem Header="Main">
 
-        <StackPanel
-            VerticalAlignment="Center"
-            Orientation="Horizontal">
+            <Grid>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition
+                        Height="auto" />
+                    <RowDefinition
+                        Height="*" />
+                    <RowDefinition
+                        Height="auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label
+                        Margin="0 0 10 0"
+                        FontWeight="SemiBold"
+                        Content="Portfolio balance:"
+                        VerticalAlignment="Center" />
+                    <TextBlock
+                        Text="{Binding PortfolioBalance}"
+                        VerticalAlignment="Center" />
+
+                </StackPanel>
+
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Portfolios}" AutoGenerateColumns="False" Margin="10">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Cryptocurrency" Binding="{Binding Cryptocurrency}" Width="*" />
+                        <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="*" />
+                        <DataGridTextColumn Header="Currency" Binding="{Binding Currency}" Width="*" />
+                        <DataGridTextColumn Header="Converted Value" Binding="{Binding ConvertedValue}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+
+                <Button
+                    Grid.Row="2"
+                    Content="Convert"
+                    Command="{Binding ConvertPortfolioCommand}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="10" />
+
+            </Grid>
+        </TabItem>
+        
+        <TabItem Header="Candles">
+            <TextBlock Text="Здесь настройки" />
             
-            <Label
-                Margin="0 0 10 0"
-                FontWeight="SemiBold"
-                Content="Portfolio balance:"
-                VerticalAlignment="Center"/>
-            <TextBlock
-                Text="{Binding PortfolioBalance}"
-                VerticalAlignment="Center" />
-
-        </StackPanel>
-
-
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Portfolios}" AutoGenerateColumns="False" Margin="10">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Cryptocurrency" Binding="{Binding Cryptocurrency}" Width="*" />
-                <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="*" />
-                <DataGridTextColumn Header="Currency" Binding="{Binding Currency}" Width="*" />
-                <DataGridTextColumn Header="Converted Value" Binding="{Binding ConvertedValue}" Width="*" />
-            </DataGrid.Columns>
-        </DataGrid>
-
-
-        <Button
-            Grid.Row="2"
-            Content="Convert"
-            Command="{Binding ConvertPortfolioCommand}"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Bottom"
-            Margin="10" />
-
-    </Grid>
+        </TabItem>
+        
+        <TabItem Header="Trades">
+            <TextBlock Text="Здесь настройки" />
+            
+        </TabItem>
+        
+        <TabItem Header="Ticker">
+            <TextBlock Text="Здесь настройки" />
+            
+        </TabItem>
+    </TabControl>
 </Window>

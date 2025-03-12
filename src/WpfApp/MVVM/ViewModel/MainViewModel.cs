@@ -20,8 +20,8 @@ public partial class MainViewModel : ObservableObject
 		new() { Cryptocurrency = "BTC", Amount = 1, Currency = "USD" },
 		new() { Cryptocurrency = "USD", Amount = 100_000, Currency = "BTC" },
 		new() { Cryptocurrency = "XRP", Amount = 15000, Currency = "USD" },
-		new() { Cryptocurrency = "XMR", Amount = 50, Currency = "USD" },
-		new() { Cryptocurrency = "ETH", Amount = 30, Currency = "USD" }
+		new() { Cryptocurrency = "XMR", Amount = 50, Currency = "USD" }
+		// new() { Cryptocurrency = "ETH", Amount = 30, Currency = "USD" }
 	];
 
 	public MainViewModel(ICryptocurrencyConverter cryptocurrencyConverter)
