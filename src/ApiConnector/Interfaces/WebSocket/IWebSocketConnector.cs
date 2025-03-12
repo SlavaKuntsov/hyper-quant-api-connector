@@ -4,20 +4,21 @@ namespace ApiConnector.Interfaces.WebSocket;
 
 public interface IWebSocketConnector
 {
-	event Action<Trade> NewBuyTrade;
-	event Action<Trade> NewSellTrade;
-
-	void SubscribeTrades(string pair, int maxCount = 100);
-	void UnsubscribeTrades(string pair);
-
-
 	event Action<Candle> CandleSeriesProcessing;
 
 	void SubscribeCandles(
 		string pair,
 		int periodInSec,
+		int? sort = null,
 		DateTimeOffset? from = null,
 		DateTimeOffset? to = null,
-		long? count = 0);
+		long? count = null);
 	void UnsubscribeCandles(string pair);
+
+
+	event Action<Trade> NewBuyTrade;
+	event Action<Trade> NewSellTrade;
+
+	Task SubscribeTrades(string pair, int maxCount = 100);
+	Task UnsubscribeTrades(string pair);
 }

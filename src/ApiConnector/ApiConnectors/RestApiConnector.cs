@@ -6,8 +6,7 @@ using ApiConnector.Models;
 
 namespace ApiConnector.ApiConnectors;
 
-public class RestApiConnector(HttpClient httpClient)
-	: ApiConnector, IRestApiConnector
+public class RestApiConnector(HttpClient httpClient) : IRestApiConnector
 {
 	private readonly HttpClient _httpClient = httpClient;
 
@@ -18,7 +17,7 @@ public class RestApiConnector(HttpClient httpClient)
 		int? sort = null,
 		DateTimeOffset? from = null,
 		DateTimeOffset? to = null,
-		long? count = 0) // change default value from 0 to null 
+		long? count = null) // change default value from 0 to null 
 	{
 		var periodInMinutes = periodInSec / 60;
 
