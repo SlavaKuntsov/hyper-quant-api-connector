@@ -30,8 +30,6 @@ public class CryptocurrencyConverter(HttpClient httpClient) : ICryptocurrencyCon
 				out var value))
 			throw new JsonException("Failed to parse 'value_coin' as decimal.");
 
-		Console.WriteLine(value);
-
 		return value;
 	}
 }
