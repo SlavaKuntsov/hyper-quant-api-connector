@@ -1,23 +1,29 @@
 ﻿using System.Windows;
-
 using ApiConnector.ApiConnectors;
 using ApiConnector.CryptocurrencyConverter;
 using ApiConnector.Interfaces.Rest;
-
 using Microsoft.Extensions.DependencyInjection;
+using WpfApp.MVVM.View;
+using WpfApp.MVVM.ViewModel;
+using CryptocurrencyConverter = ApiConnector.CryptocurrencyConverter.CryptocurrencyConverter;
 
 namespace WpfApp;
 
 /// <summary>
-/// Interaction logic for App.xaml
+///     Interaction logic for App.xaml
 /// </summary>
 public partial class App : Application
 {
+	private static IServiceProvider? _serviceProvider;
+
 	protected override void OnStartup(StartupEventArgs e)
 	{
 		base.OnStartup(e);
 
 		var services = new ServiceCollection();
+
+		services.AddTransient<MainViewModel>();
+		services.AddTransient<MainWindow>();
 
 		services.AddHttpClient<IRestApiConnector, RestApiConnector>(client =>
 		{
@@ -28,5 +34,11 @@ public partial class App : Application
 		{
 			client.BaseAddress = new Uri("https://api.cryptapi.io");
 		});
+
+
+		_serviceProvider = services.BuildServiceProvider();
+
+		var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+		mainWindow.Show();
 	}
 }
