@@ -45,7 +45,6 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-
                 <Button
                     Grid.Row="2"
                     Content="Convert"
@@ -56,20 +55,96 @@
 
             </Grid>
         </TabItem>
-        
+
         <TabItem Header="Candles">
             <TextBlock Text="Здесь настройки" />
-            
+
         </TabItem>
-        
+
         <TabItem Header="Trades">
-            <TextBlock Text="Здесь настройки" />
-            
+
+            <StackPanel
+                Orientation="Vertical">
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label Content="Trading pairs:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Amount:"
+                           VerticalAlignment="Center"
+                           Margin="10 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Button
+                        Content="Get trades"
+                        Command="{Binding GetNewTradesCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="10" />
+
+                </StackPanel>
+
+                <ListView ItemsSource="{Binding Trades}" Margin="10" Height="300">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="ID" DisplayMemberBinding="{Binding Id}" />
+                            <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}" />
+                            <GridViewColumn Header="Amount" DisplayMemberBinding="{Binding Amount}" />
+                            <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" />
+                            <GridViewColumn Header="Side" DisplayMemberBinding="{Binding Side}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+            </StackPanel>
+
         </TabItem>
-        
+
         <TabItem Header="Ticker">
-            <TextBlock Text="Здесь настройки" />
-            
+
+            <StackPanel
+                Orientation="Vertical">
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label Content="Trading currency:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Button
+                        Content="Get ticker"
+                        Command="{Binding GetTickerCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="10" />
+
+                </StackPanel>
+
+                <TextBlock
+                    Text="{Binding Ticker, UpdateSourceTrigger=PropertyChanged}" />
+
+            </StackPanel>
+
         </TabItem>
     </TabControl>
 </Window>

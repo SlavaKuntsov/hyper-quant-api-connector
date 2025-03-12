@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using ApiConnector.CryptocurrencyConverter;
+using ApiConnector.Interfaces.Rest;
 using ApiConnector.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,6 +11,11 @@ namespace WpfApp.MVVM.ViewModel;
 public partial class MainViewModel : ObservableObject
 {
 	private readonly ICryptocurrencyConverter _cryptocurrencyConverter;
+
+	private readonly IRestApiConnector _restApiConnector;
+
+	[ObservableProperty]
+	private int amount = 5;
 
 	[ObservableProperty]
 	private decimal? portfolioBalance = 0;
@@ -24,9 +30,21 @@ public partial class MainViewModel : ObservableObject
 		// new() { Cryptocurrency = "ETH", Amount = 30, Currency = "USD" }
 	];
 
-	public MainViewModel(ICryptocurrencyConverter cryptocurrencyConverter)
+	[ObservableProperty]
+	private string ticker;
+
+	[ObservableProperty]
+	private ObservableCollection<Trade> trades = [];
+
+	[ObservableProperty]
+	private string tradingPair = "BTCUSD";
+
+	public MainViewModel(
+		ICryptocurrencyConverter cryptocurrencyConverter,
+		IRestApiConnector restApiConnector)
 	{
 		_cryptocurrencyConverter = cryptocurrencyConverter;
+		_restApiConnector = restApiConnector;
 	}
 
 	[RelayCommand]
@@ -37,9 +55,25 @@ public partial class MainViewModel : ObservableObject
 				new Cryptocurrency(portfolio.Cryptocurrency, portfolio.Amount),
 				portfolio.Currency);
 
-		// Оповещаем UI об изменении коллекции (принудительно обновляем список)
 		Portfolios = new ObservableCollection<Portfolio>(Portfolios);
 
 		PortfolioBalance = Portfolios.Sum(p => p.ConvertedValue);
+	}
+
+	[RelayCommand]
+	private async Task GetNewTradesAsync()
+	{
+		Trades.Clear();
+
+		await foreach (var trade in _restApiConnector.GetNewTradesAsync(tradingPair, amount))
+			Trades.Add(trade);
+	}
+
+	[RelayCommand]
+	private async Task GetTickerAsync()
+	{
+		var tickerModel = await _restApiConnector.GetTickerAsync(tradingPair);
+
+		Ticker = tickerModel.ToString();
 	}
 }

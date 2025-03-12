@@ -11,7 +11,7 @@ public class RestApiConnector(HttpClient httpClient)
 {
 	private readonly HttpClient _httpClient = httpClient;
 
-	// change return type from Task<IEnumerable<Candle>> to 
+	// change return type from Task<IEnumerable<Candle>> to IAsyncEnumerable<Candle> 
 	public async IAsyncEnumerable<Candle> GetCandleSeriesAsync(
 		string pair,
 		int periodInSec,
@@ -54,7 +54,11 @@ public class RestApiConnector(HttpClient httpClient)
 			.GetAsync(query.ToString());
 
 		if (res.StatusCode == (HttpStatusCode)500)
-			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
+		{
+			var errorJson = await res.Content.ReadAsStringAsync();
+
+			throw new HttpRequestException($"Error: {errorJson}");
+		}
 
 		var candlesJson = await ConvertToJsonArrayFromResponseAsync(res);
 
@@ -84,13 +88,47 @@ public class RestApiConnector(HttpClient httpClient)
 		}
 	}
 
+	public async IAsyncEnumerable<Trade> GetNewTradesAsync(string pair, int maxCount)
+	{
+		var res = await _httpClient
+			.GetAsync($"v2/trades/t{pair}/hist?limit={maxCount}");
+
+		if (res.StatusCode == (HttpStatusCode)500)
+		{
+			var errorJson = await res.Content.ReadAsStringAsync();
+
+			throw new HttpRequestException($"Error: {errorJson}");
+		}
+
+		var tradesJson = await ConvertToJsonArrayFromResponseAsync(res);
+
+		foreach (var tradeData in tradesJson)
+		{
+			var trade = new Trade
+			{
+				Pair = pair,
+				Id = tradeData[0].GetInt64().ToString(),
+				Time = DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
+				Amount = tradeData[2].GetDecimal(),
+				Price = tradeData[3].GetDecimal(),
+				Side = tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
+			};
+
+			yield return trade;
+		}
+	}
+
 	public async Task<Ticker> GetTickerAsync(string pair)
 	{
 		var res = await _httpClient
 			.GetAsync($"v2/ticker/t{pair}");
 
 		if (res.StatusCode == (HttpStatusCode)500)
-			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
+		{
+			var errorJson = await res.Content.ReadAsStringAsync();
+
+			throw new HttpRequestException($"Error: {errorJson}");
+		}
 
 		var tickerJson = await ConvertToDecimalFromResponseAsync(res);
 
@@ -110,32 +148,6 @@ public class RestApiConnector(HttpClient httpClient)
 		};
 
 		return ticker;
-	}
-
-	public async IAsyncEnumerable<Trade> GetNewTradesAsync(string pair, int maxCount)
-	{
-		var res = await _httpClient
-			.GetAsync($"v2/trades/t{pair}/hist?limit={maxCount}");
-
-		if (res.StatusCode == (HttpStatusCode)500)
-			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");
-
-		var tradesJson = await ConvertToJsonArrayFromResponseAsync(res);
-
-		foreach (var tradeData in tradesJson)
-		{
-			var trade = new Trade
-			{
-				Pair = pair,
-				Id = tradeData[0].GetInt64().ToString(),
-				Time = DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
-				Amount = tradeData[2].GetDecimal(),
-				Price = tradeData[3].GetDecimal(),
-				Side = tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
-			};
-
-			yield return trade;
-		}
 	}
 
 	private static async Task<decimal[]> ConvertToDecimalFromResponseAsync(HttpResponseMessage res)
