@@ -10,10 +10,10 @@ public class CryptocurrencyConverter(HttpClient httpClient) : ICryptocurrencyCon
 {
 	private readonly HttpClient _httpClient = httpClient;
 
-	public async Task<decimal> Convert(Cryptocurrency cryptocurrency, string from)
+	public async Task<decimal> Convert(Cryptocurrency cryptocurrency, string to)
 	{
 		var res = await _httpClient
-			.GetAsync($"{cryptocurrency.Currency}/convert?value={cryptocurrency.Amount}&from={from}");
+			.GetAsync($"{to}/convert?value={cryptocurrency.Amount}&from={cryptocurrency.Currency}");
 
 		if (res.StatusCode == (HttpStatusCode)500 || res.StatusCode == (HttpStatusCode)400)
 			throw new HttpRequestException($"Error: {res.StatusCode} - {res.ReasonPhrase}.");

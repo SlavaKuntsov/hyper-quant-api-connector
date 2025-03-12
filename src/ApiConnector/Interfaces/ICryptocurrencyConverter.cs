@@ -4,5 +4,5 @@ namespace ApiConnector.CryptocurrencyConverter;
 
 public interface ICryptocurrencyConverter
 {
-	Task<decimal> Convert(Cryptocurrency cryptocurrency, string from);
+	Task<decimal> Convert(Cryptocurrency cryptocurrency, string to);
 }
