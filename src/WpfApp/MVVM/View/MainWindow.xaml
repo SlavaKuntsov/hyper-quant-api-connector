@@ -57,7 +57,98 @@
         </TabItem>
 
         <TabItem Header="Candles">
-            <TextBlock Text="Здесь настройки" />
+
+            <StackPanel
+                Orientation="Vertical">
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label Content="Trading pairs:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Period in sec:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             Margin="0 0 10 0"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding CandlePeriodInSec, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Amount:"
+                           VerticalAlignment="Center"
+                           Margin="10 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" />
+                    
+                    <Label Content="Sort:"
+                           VerticalAlignment="Center"
+                           Margin="10 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding Sort, UpdateSourceTrigger=PropertyChanged}" />
+
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+
+                    <Label Content="From:" VerticalAlignment="Center" Margin="10 0 10 0" />
+                    <DatePicker SelectedDate="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center" Margin="0 0 10 0" />
+
+                    <TextBox Text="{Binding FromTime, UpdateSourceTrigger=PropertyChanged}"
+                             Width="100" VerticalAlignment="Center" Margin="0 0 10 0"
+                             ToolTip="Enter time in HH:mm format" />
+
+                    <Label Content="To:" VerticalAlignment="Center" Margin="10 0 10 0" />
+                    <DatePicker SelectedDate="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center" Margin="0 0 10 0" />
+
+                    <TextBox Text="{Binding ToTime, UpdateSourceTrigger=PropertyChanged}"
+                             Width="100" VerticalAlignment="Center" Margin="0 0 10 0"
+                             ToolTip="Enter time in HH:mm format" />
+
+                </StackPanel>
+
+                <Button
+                    Content="Get trades"
+                    Command="{Binding GetCandleSeriesCommand}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom"
+                    Margin="10" />
+
+                <ListView ItemsSource="{Binding Candles}" Margin="10" Height="250">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}" />
+                            <GridViewColumn Header="OpenPrice" DisplayMemberBinding="{Binding OpenPrice}" />
+                            <GridViewColumn Header="HighPrice" DisplayMemberBinding="{Binding HighPrice}" />
+                            <GridViewColumn Header="LowPrice" DisplayMemberBinding="{Binding LowPrice}" />
+                            <GridViewColumn Header="ClosePrice" DisplayMemberBinding="{Binding ClosePrice}" />
+                            <GridViewColumn Header="TotalPrice" DisplayMemberBinding="{Binding TotalPrice}" />
+                            <GridViewColumn Header="TotalVolume" DisplayMemberBinding="{Binding TotalVolume}" />
+                            <GridViewColumn Header="OpenTime" DisplayMemberBinding="{Binding OpenTime}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+            </StackPanel>
 
         </TabItem>
 
