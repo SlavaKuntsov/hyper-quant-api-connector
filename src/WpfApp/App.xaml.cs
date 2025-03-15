@@ -1,7 +1,9 @@
 ﻿using System.Windows;
+using System.Windows.Threading;
 using ApiConnector.ApiConnectors;
 using ApiConnector.CryptocurrencyConverter;
 using ApiConnector.Interfaces.Rest;
+using ApiConnector.Interfaces.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using WpfApp.MVVM.View;
 using WpfApp.MVVM.ViewModel;
@@ -36,16 +38,22 @@ public partial class App : Application
 			client.BaseAddress = new Uri("https://api.cryptapi.io");
 		});
 
+		services.AddSingleton<IWebSocketConnector>(
+			new WebSocketConnector("wss://api-pub.bitfinex.com/ws/2"));
 
 		_serviceProvider = services.BuildServiceProvider();
 
 		var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
 		mainWindow.Show();
 	}
-	
-	private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+
+	private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 	{
-		MessageBox.Show($"Ошибка: {e.Exception.Message}", "Критическая ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-		e.Handled = true; // предотвращает падение приложения
+		MessageBox.Show(
+			$"Ошибка: {e.Exception.Message}",
+			"Критическая ошибка",
+			MessageBoxButton.OK,
+			MessageBoxImage.Error);
+		e.Handled = true;
 	}
 }

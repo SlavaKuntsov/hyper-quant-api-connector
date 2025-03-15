@@ -1,10 +1,10 @@
 # HyperQuant Api Connector
-## Задача
+### Задача
 1. Написать коннектор к API Bitfinex ([ссылка на API](https://docs.bitfinex.com/docs/introduction)) для запросов на:
 	- Rest
 	- WebSocket
 2. Реализовать расчет баланса портфеля на балансе которого есть некоторые валюты.
-## Реализация
+### Реализация
 Базовый интерфейс `ITestConnector` по *Interface Segregation Principle* был разделен на `IRestApiConnector` и `IWebSocketConnector` интерфейсы.
 
 Регистрация коннекторов и конвертера в *DI*:
@@ -29,7 +29,7 @@ services.AddSingleton<IWebSocketConnector>(
 Для конверета валют был использован сервсис [CryptAPI](https://docs.cryptapi.io/#operation/convert).
 ## Models
 Кроме `Candle` и `Trade` была добавлена модель `Ticker`.
-Новый поля или свойства добавлены не были, только переопределен метод `toString()` для вывода всех полей.
+В моделе `Trade` было добавлено поле `MessageType` для обозначения типа WebSocket сообщения (*"te" (trade executed), "tu" (trade updated), "fte" (funding trade executed), "ftu" (funding trade updated)*).
 ## API Connectors
 ### Rest
 Методы, которые должны вернуть последовательность `IEnumerable`, возвращают значения через `yield return`, чтобы в некоторых случаях, когда возвращаются десятки тысяч обьектов, можно было избежать выделения памяти сразу под всю последовательность.

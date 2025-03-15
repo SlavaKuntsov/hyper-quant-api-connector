@@ -60,7 +60,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 		throw new NotImplementedException();
 	}
 
-	public async Task SubscribeTrades(string pair, int maxCount = 100)
+	public async Task SubscribeTrades(string pair)
 	{
 		if (_webSocketClient.State == WebSocketState.Open)
 			return;
@@ -78,7 +78,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 
 		_tradePair = pair;
 
-		SendMessageAsync(reqMessage);
+		await SendMessageAsync(reqMessage);
 
 		_receiveCancellationTokenSource = new CancellationTokenSource();
 
@@ -90,7 +90,8 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 		if (_webSocketClient.State != WebSocketState.Open)
 			return;
 
-		await _receiveCancellationTokenSource?.CancelAsync();
+		if (_receiveCancellationTokenSource != null)
+			await _receiveCancellationTokenSource.CancelAsync();
 
 		var reqMessage = new RequestMessageDTO
 		{
@@ -124,11 +125,11 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 
 	private async Task ReceiveMessagesAsync(CancellationToken cancellationToken)
 	{
+		var buffer = new byte[1024 * 4]; // 1024 * 4 because it's MTU
+
 		while (_webSocketClient.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
 			try
 			{
-				var buffer = new byte[1024 * 4]; // 1024 * 4 because it's MTU
-
 				WebSocketReceiveResult res;
 
 				var fullMessage = new StringBuilder();
@@ -155,33 +156,33 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 						cancellationToken);
 				} while (!res.EndOfMessage);
 
-				ProcessResponseMessage(fullMessage.ToString());
+				ProcessTradeResponseMessage(fullMessage.ToString());
 			}
 			catch (OperationCanceledException)
 			{
 				break;
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				Console.WriteLine(e);
+				Console.WriteLine(ex.Message);
 
 				break;
 			}
 	}
 
-	private void ProcessResponseMessage(string message)
+	private void ProcessTradeResponseMessage(string message)
 	{
-		var jsonElement = JsonDocument.Parse(message).RootElement;
+		using var jsonDocument = JsonDocument.Parse(message);
+
+		var jsonElement = jsonDocument.RootElement;
 
 		if (jsonElement.ValueKind == JsonValueKind.Object)
 			return;
 
-		var trade = default(Trade);
+		Trade trade;
 
 		if (_isFirstTrade)
 		{
-			Console.WriteLine("IT IS SNAPSHOT");
-
 			foreach (var tradeData in jsonElement[1].EnumerateArray())
 			{
 				trade = new Trade(
@@ -190,9 +191,10 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 					"snapshot",
 					DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
 					tradeData[2].GetDecimal(),
-					tradeData[3].GetDecimal()
+					tradeData[3].GetDecimal(),
+					tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
 				);
-			
+
 				NewBuyTrade?.Invoke(trade);
 			}
 
@@ -204,17 +206,21 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 				return;
 
 			var tradeData = jsonElement[2];
-			
+
 			trade = new Trade(
 				_tradePair,
 				tradeData[0].ToString(),
 				jsonElement[1].ToString(),
 				DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
 				tradeData[2].GetDecimal(),
-				tradeData[3].GetDecimal()
+				tradeData[3].GetDecimal(),
+				tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
 			);
-			
-			NewBuyTrade?.Invoke(trade);
+
+			if (tradeData[2].GetDecimal() > 0)
+				NewBuyTrade?.Invoke(trade);
+			else
+				NewSellTrade?.Invoke(trade);
 		}
 	}
 }

@@ -56,7 +56,7 @@
             </Grid>
         </TabItem>
 
-        <TabItem Header="Candles">
+        <TabItem Header="Candles REST">
 
             <StackPanel
                 Orientation="Vertical">
@@ -92,7 +92,7 @@
                              MinWidth="100"
                              VerticalAlignment="Center"
                              Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" />
-                    
+
                     <Label Content="Sort:"
                            VerticalAlignment="Center"
                            Margin="10 0 10 0" />
@@ -133,7 +133,10 @@
                     VerticalAlignment="Bottom"
                     Margin="10" />
 
-                <ListView ItemsSource="{Binding Candles}" Margin="10" Height="250">
+                <ListView ItemsSource="{Binding Candles}" Margin="10" Height="250"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          ScrollViewer.CanContentScroll="True">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}" />
@@ -151,8 +154,8 @@
             </StackPanel>
 
         </TabItem>
-
-        <TabItem Header="Trades">
+        
+        <TabItem Header="Trades Rest">
 
             <StackPanel
                 Orientation="Vertical">
@@ -202,6 +205,61 @@
 
             </StackPanel>
 
+        </TabItem>
+        
+        <TabItem Header="Trades WebSocket">
+            
+            <StackPanel
+                Orientation="Vertical">
+                
+                <StackPanel 
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label Content="Trading pairs:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
+                
+                    <Button
+                        Content="Subscribe trades"
+                        Command="{Binding SubscribeTradesCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="20 10 10 10" />
+                    
+                    <Button
+                        Content="Subscribe trades"
+                        Command="{Binding UnsubscribeTradesCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="10" />
+                    
+                </StackPanel>
+
+                <ListView ItemsSource="{Binding TradesWebSocket}" Margin="10" Height="250"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          ScrollViewer.CanContentScroll="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}" />
+                            <GridViewColumn Header="Id" DisplayMemberBinding="{Binding Id}" />
+                            <GridViewColumn Header="MessageType" DisplayMemberBinding="{Binding MessageType}" />
+                            <GridViewColumn Header="Amount" DisplayMemberBinding="{Binding Amount}" />
+                            <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" />
+                            <GridViewColumn Header="Side" DisplayMemberBinding="{Binding Side}" />
+                            <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                
+            </StackPanel>
+            
         </TabItem>
 
         <TabItem Header="Ticker">

@@ -19,6 +19,7 @@ public interface IWebSocketConnector
 	event Action<Trade> NewBuyTrade;
 	event Action<Trade> NewSellTrade;
 
-	Task SubscribeTrades(string pair, int maxCount = 100);
+	// remove the field maxcount since it is not used anywhere
+	Task SubscribeTrades(string pair);
 	Task UnsubscribeTrades(string pair);
 }

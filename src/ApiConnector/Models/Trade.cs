@@ -24,7 +24,8 @@ public class Trade
 		string messageType,
 		DateTimeOffset time,
 		decimal amount,
-		decimal price)
+		decimal price,
+		string side)
 	{
 		Id = id;
 		MessageType = messageType;
@@ -32,6 +33,7 @@ public class Trade
 		Time = time;
 		Amount = amount;
 		Price = price;
+		Side = side;
 	}
 
 	/// <summary>
