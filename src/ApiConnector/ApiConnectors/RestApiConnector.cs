@@ -103,15 +103,13 @@ public class RestApiConnector(HttpClient httpClient) : IRestApiConnector
 
 		foreach (var tradeData in tradesJson)
 		{
-			var trade = new Trade
-			{
-				Pair = pair,
-				Id = tradeData[0].GetInt64().ToString(),
-				Time = DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
-				Amount = tradeData[2].GetDecimal(),
-				Price = tradeData[3].GetDecimal(),
-				Side = tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
-			};
+			var trade = new Trade(
+				pair,
+				tradeData[0].GetInt64().ToString(),
+				DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
+				tradeData[2].GetDecimal(),
+				tradeData[3].GetDecimal(),
+				tradeData[2].GetDecimal() > 0 ? "buy" : "sell");
 
 			yield return trade;
 		}

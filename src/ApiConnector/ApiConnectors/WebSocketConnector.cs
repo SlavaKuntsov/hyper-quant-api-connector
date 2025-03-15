@@ -1,16 +1,21 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using ApiConnector.DTOs;
 using ApiConnector.Interfaces.WebSocket;
 using ApiConnector.Models;
 
 namespace ApiConnector.ApiConnectors;
 
-public class WebSocketConnector : IWebSocketConnector
+public class WebSocketConnector : IWebSocketConnector, IDisposable
 {
+	private static string _tradePair;
+
 	private readonly string _baseUrl;
 
 	private readonly ClientWebSocket _webSocketClient;
+
+	private bool _isFirstTrade = true;
 
 	private CancellationTokenSource _receiveCancellationTokenSource;
 
@@ -18,6 +23,12 @@ public class WebSocketConnector : IWebSocketConnector
 	{
 		_baseUrl = baseUrl;
 		_webSocketClient = new ClientWebSocket();
+	}
+
+	public void Dispose()
+	{
+		_webSocketClient.Dispose();
+		_receiveCancellationTokenSource.Dispose();
 	}
 
 	public event Action<Candle> CandleSeriesProcessing;
@@ -58,33 +69,16 @@ public class WebSocketConnector : IWebSocketConnector
 			new Uri(_baseUrl),
 			CancellationToken.None);
 
-		var reqMessage = new RequestMessage
+		var reqMessage = new RequestMessageDTO
 		{
 			@event = "subscribe",
 			channel = "trades",
 			symbol = $"t{pair}"
 		};
 
-		Console.WriteLine(reqMessage.ToString());
+		_tradePair = pair;
 
-		try
-		{
-			var jso1n = JsonSerializer.Serialize(reqMessage);
-			Console.WriteLine(jso1n);
-			var json = JsonSerializer.SerializeToUtf8Bytes(reqMessage);
-
-			var buffer = new ReadOnlyMemory<byte>(json);
-
-			await _webSocketClient.SendAsync(
-				buffer,
-				WebSocketMessageType.Text,
-				true,
-				CancellationToken.None);
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-		}
+		SendMessageAsync(reqMessage);
 
 		_receiveCancellationTokenSource = new CancellationTokenSource();
 
@@ -98,13 +92,18 @@ public class WebSocketConnector : IWebSocketConnector
 
 		await _receiveCancellationTokenSource?.CancelAsync();
 
-		var reqMessage = new RequestMessage
+		var reqMessage = new RequestMessageDTO
 		{
 			@event = "unsubscribe",
 			channel = "trades",
 			symbol = $"t{pair}"
 		};
 
+		await SendMessageAsync(reqMessage);
+	}
+
+	private async Task SendMessageAsync(RequestMessageDTO reqMessage)
+	{
 		try
 		{
 			var json = JsonSerializer.SerializeToUtf8Bytes(reqMessage);
@@ -131,7 +130,7 @@ public class WebSocketConnector : IWebSocketConnector
 				var buffer = new byte[1024 * 4]; // 1024 * 4 because it's MTU
 
 				WebSocketReceiveResult res;
-				
+
 				var fullMessage = new StringBuilder();
 
 				// adding a loop for connecting message chunks
@@ -144,7 +143,7 @@ public class WebSocketConnector : IWebSocketConnector
 					if (res.MessageType != WebSocketMessageType.Close)
 					{
 						var resMessage = Encoding.UTF8.GetString(buffer, 0, res.Count);
-						
+
 						fullMessage.Append(resMessage);
 
 						continue;
@@ -156,14 +155,7 @@ public class WebSocketConnector : IWebSocketConnector
 						cancellationToken);
 				} while (!res.EndOfMessage);
 
-				var trade = new Trade
-				{
-					Pair = "BTCUSD"
-				};
-				
-				NewBuyTrade?.Invoke(trade);
-
-				Console.WriteLine("конец");
+				ProcessResponseMessage(fullMessage.ToString());
 			}
 			catch (OperationCanceledException)
 			{
@@ -176,18 +168,53 @@ public class WebSocketConnector : IWebSocketConnector
 				break;
 			}
 	}
-}
 
-public class RequestMessage
-{
-	public string @event { get; set; }
-	public string channel { get; set; }
-	public string symbol { get; set; }
-
-	public override string ToString()
+	private void ProcessResponseMessage(string message)
 	{
-		return $@"{nameof(@event)} - {@event},
-	{nameof(channel)} - {channel},
-	{nameof(symbol)} - {symbol}";
+		var jsonElement = JsonDocument.Parse(message).RootElement;
+
+		if (jsonElement.ValueKind == JsonValueKind.Object)
+			return;
+
+		var trade = default(Trade);
+
+		if (_isFirstTrade)
+		{
+			Console.WriteLine("IT IS SNAPSHOT");
+
+			foreach (var tradeData in jsonElement[1].EnumerateArray())
+			{
+				trade = new Trade(
+					_tradePair,
+					tradeData[0].ToString(),
+					"snapshot",
+					DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
+					tradeData[2].GetDecimal(),
+					tradeData[3].GetDecimal()
+				);
+			
+				NewBuyTrade?.Invoke(trade);
+			}
+
+			_isFirstTrade = false;
+		}
+		else
+		{
+			if (jsonElement[1].ToString() == "hb")
+				return;
+
+			var tradeData = jsonElement[2];
+			
+			trade = new Trade(
+				_tradePair,
+				tradeData[0].ToString(),
+				jsonElement[1].ToString(),
+				DateTimeOffset.FromUnixTimeMilliseconds(tradeData[1].GetInt64()),
+				tradeData[2].GetDecimal(),
+				tradeData[3].GetDecimal()
+			);
+			
+			NewBuyTrade?.Invoke(trade);
+		}
 	}
 }
