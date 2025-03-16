@@ -41,21 +41,10 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 	public event Action<Trade> NewBuyTrade;
 	public event Action<Trade> NewSellTrade;
 
-	public async Task SubscribeCandles(
-		string pair,
-		int periodInSec,
-		int? sort = null,
-		DateTimeOffset? from = null,
-		DateTimeOffset? to = null,
-		long? count = null)
+	// all parameters except Pair and Period in sec have been deleted because websocket qeury dont use them
+	public async Task SubscribeCandles(string pair, int periodInSec)
 	{
 		var periodInMinutes = periodInSec / 60;
-
-		if (sort != 1 && sort != -1 && sort != null)
-			throw new ArgumentException("Sort must be 1(asc) or -1(desc).");
-
-		if (from > to)
-			throw new ArgumentException("From must be less than or equal to To.");
 
 		if (_webSocketClient.State == WebSocketState.Open)
 			return;
@@ -84,7 +73,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 			_receiveCancellationTokenSource.Token);
 	}
 
-	public async Task UnsubscribeCandles(string pair)
+	public async Task UnsubscribeCandles()
 	{
 		if (_webSocketClient.State != WebSocketState.Open)
 			return;
@@ -128,7 +117,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 			_receiveCancellationTokenSource.Token);
 	}
 
-	public async Task UnsubscribeTrades(string pair)
+	public async Task UnsubscribeTrades()
 	{
 		if (_webSocketClient.State != WebSocketState.Open)
 			return;

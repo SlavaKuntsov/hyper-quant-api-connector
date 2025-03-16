@@ -25,7 +25,7 @@ public partial class MainViewModel : ObservableObject
 
 	[ObservableProperty]
 	private ObservableCollection<Candle> candles = [];
-	
+
 	[ObservableProperty]
 	private ObservableCollection<Candle> candlesWebSocket = [];
 
@@ -117,37 +117,28 @@ public partial class MainViewModel : ObservableObject
 	private async Task SubscribeCandlesAsync()
 	{
 		CandlesWebSocket.Clear();
-		
+
 		_webSocketConnector.CandleSeriesProcessing += OnWebSocketConnectorOnCandleProcessing;
 
-		var from = CombineDateAndTime(FromDate, FromTime)
-					?? DateTimeOffset.UtcNow.AddDays(-1);
-
-		var to = CombineDateAndTime(ToDate, ToTime)
-				?? DateTimeOffset.UtcNow;
-
-		await _webSocketConnector.SubscribeCandles(
-			tradingPair,
-			candlePeriodInSec,
-			sort,
-			from,
-			to,
-			amount);
+		await _webSocketConnector.SubscribeCandles(tradingPair, candlePeriodInSec);
 	}
 
 	[RelayCommand]
 	private async Task UnsubscribeCandlesAsync()
 	{
 		_webSocketConnector.CandleSeriesProcessing -= OnWebSocketConnectorOnCandleProcessing;
-		
-		await _webSocketConnector.UnsubscribeCandles(tradingPair);
+
+		await _webSocketConnector.UnsubscribeCandles();
 	}
-	
+
 	private void OnWebSocketConnectorOnCandleProcessing(Candle candle)
 	{
-		CandlesWebSocket.Insert(0, candle);
+		if (candle.MessageType == "snapshot")
+			CandlesWebSocket.Add(candle);
+		else
+			CandlesWebSocket.Insert(0, candle);
 	}
-	
+
 	[RelayCommand]
 	private async Task GetNewTradesAsync()
 	{
@@ -161,7 +152,7 @@ public partial class MainViewModel : ObservableObject
 	private async Task SubscribeTradesAsync()
 	{
 		TradesWebSocket.Clear();
-		
+
 		_webSocketConnector.NewBuyTrade += OnWebSocketConnectorOnNewBuyTrade;
 		_webSocketConnector.NewSellTrade += OnWebSocketConnectorOnNewSellTrade;
 
@@ -173,18 +164,24 @@ public partial class MainViewModel : ObservableObject
 	{
 		_webSocketConnector.NewBuyTrade -= OnWebSocketConnectorOnNewBuyTrade;
 		_webSocketConnector.NewSellTrade -= OnWebSocketConnectorOnNewSellTrade;
-		
-		await _webSocketConnector.UnsubscribeTrades(tradingPair);
+
+		await _webSocketConnector.UnsubscribeTrades();
 	}
-	
+
 	private void OnWebSocketConnectorOnNewSellTrade(Trade trade)
 	{
-		TradesWebSocket.Insert(0, trade);
+		if (trade.MessageType == "snapshot")
+			TradesWebSocket.Add(trade);
+		else
+			TradesWebSocket.Insert(0, trade);
 	}
-	
+
 	private void OnWebSocketConnectorOnNewBuyTrade(Trade trade)
 	{
-		TradesWebSocket.Insert(0, trade);
+		if (trade.MessageType == "snapshot")
+			TradesWebSocket.Add(trade);
+		else
+			TradesWebSocket.Insert(0, trade);
 	}
 
 	[RelayCommand]

@@ -6,20 +6,13 @@ public interface IWebSocketConnector
 {
 	event Action<Candle> CandleSeriesProcessing;
 
-	Task SubscribeCandles(
-		string pair,
-		int periodInSec,
-		int? sort = null,
-		DateTimeOffset? from = null,
-		DateTimeOffset? to = null,
-		long? count = null);
-	Task UnsubscribeCandles(string pair);
-
+	Task SubscribeCandles(string pair, int periodInSec);
+	Task UnsubscribeCandles();
 
 	event Action<Trade> NewBuyTrade;
 	event Action<Trade> NewSellTrade;
 
 	// remove the field maxcount since it is not used anywhere
 	Task SubscribeTrades(string pair);
-	Task UnsubscribeTrades(string pair);
+	Task UnsubscribeTrades();
 }
