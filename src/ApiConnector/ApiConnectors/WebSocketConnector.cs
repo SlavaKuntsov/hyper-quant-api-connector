@@ -41,7 +41,6 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 	public event Action<Trade> NewBuyTrade;
 	public event Action<Trade> NewSellTrade;
 
-	// all parameters except Pair and Period in sec have been deleted because websocket qeury dont use them
 	public async Task SubscribeCandles(string pair, int periodInSec)
 	{
 		var periodInMinutes = periodInSec / 60;

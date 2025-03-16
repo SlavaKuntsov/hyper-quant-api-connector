@@ -29,7 +29,7 @@ services.AddSingleton<IWebSocketConnector>(
 Для конверета валют был использован сервсис [CryptAPI](https://docs.cryptapi.io/#operation/convert).
 ## Models
 Кроме `Candle` и `Trade` была добавлена модель `Ticker`.
-В моделе `Trade` было добавлено поле `MessageType` для обозначения типа WebSocket сообщения (*"te" (trade executed), "tu" (trade updated), "fte" (funding trade executed), "ftu" (funding trade updated)*).
+В моделе `Trade` и `Candle` было добавлено поле `MessageType` для обозначения типа WebSocket сообщения (*"te" (trade executed), "tu" (trade updated), "fte" (funding trade executed), "ftu" (funding trade updated), "cu" (candle updated)*).
 ## API Connectors
 ### Rest
 Методы, которые должны вернуть последовательность `IEnumerable`, возвращают значения через `yield return`, чтобы в некоторых случаях, когда возвращаются десятки тысяч обьектов, можно было избежать выделения памяти сразу под всю последовательность.
@@ -73,6 +73,56 @@ await foreach (var trade in _restApiConnector.GetNewTradesAsync(tradingPair, amo
 ``` csharp
 var ticker = await _restApiConnector.GetTickerAsync(tradingPair);
 ```
+### WebSocket
+Т.к нужно реализовать только методы `SubscribeCandles` и `SubscribeTrades`, то методы по подкючению и откючению, отправке, получению и обработке сообщений должны быть реализованны уже внутри них. 
+
+**Интерфейс**
+``` csharp
+public interface IWebSocketConnector  
+{  
+    event Action<Candle> CandleSeriesProcessing;  
+  
+    // all parameters except Pair and Period in sec have been deleted because websocket query don't use them  
+    Task SubscribeCandles(string pair, int periodInSec);  
+    Task UnsubscribeCandles();  
+  
+    event Action<Trade> NewBuyTrade;  
+    event Action<Trade> NewSellTrade;  
+  
+    // remove the parameter maxCount since it is not used anywhere  
+    Task SubscribeTrades(string pair);  
+    Task UnsubscribeTrades();  
+}
+```
+**Использование** (Wpf)
+``` csharp
+[RelayCommand]  
+private async Task SubscribeCandlesAsync()  
+{  
+    CandlesWebSocket.Clear();  
+  
+    _webSocketConnector.CandleSeriesProcessing += OnWebSocketConnectorOnCandleProcessing;  
+  
+    await _webSocketConnector.SubscribeCandles(tradingPair, candlePeriodInSec);  
+}  
+  
+[RelayCommand]  
+private async Task UnsubscribeCandlesAsync()  
+{  
+    _webSocketConnector.CandleSeriesProcessing -= OnWebSocketConnectorOnCandleProcessing;  
+  
+    await _webSocketConnector.UnsubscribeCandles();  
+}  
+  
+private void OnWebSocketConnectorOnCandleProcessing(Candle candle)  
+{  
+    if (candle.MessageType == "snapshot")  
+       CandlesWebSocket.Add(candle);  
+    else  
+       CandlesWebSocket.Insert(0, candle);  
+}
+```
+В функции `OnWebSocketConnectorOnCandleProcessing` есть условие для корректного вывода обьектов с сортировкой по дате (новые записи поялвяются вначале списка).
 ## Converter
 Для реализации конвертера был создан класс `CryptocurrencyConverter` реализующий интерфес с методом `Convert`.
 ``` csharp
