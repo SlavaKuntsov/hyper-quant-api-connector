@@ -9,8 +9,11 @@ namespace ApiConnector.ApiConnectors;
 
 public class WebSocketConnector : IWebSocketConnector, IDisposable
 {
+	private static string _candlePair;
 
 	private static string _tradePair;
+
+	private static string _candleChanId;
 
 	private static string _tradeChanId;
 
@@ -38,7 +41,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 	public event Action<Trade> NewBuyTrade;
 	public event Action<Trade> NewSellTrade;
 
-	public void SubscribeCandles(
+	public async Task SubscribeCandles(
 		string pair,
 		int periodInSec,
 		int? sort = null,
@@ -54,13 +57,48 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 		if (from > to)
 			throw new ArgumentException("From must be less than or equal to To.");
 
+		if (_webSocketClient.State == WebSocketState.Open)
+			return;
 
-		throw new NotImplementedException();
+		await _webSocketClient.ConnectAsync(
+			new Uri(_baseUrl),
+			CancellationToken.None);
+
+		var reqMessage = new RequestMessageDTO
+		{
+			@event = "subscribe",
+			channel = "candles",
+			key = $"trade:{periodInMinutes}m:t{pair}"
+		};
+
+		Console.WriteLine(reqMessage);
+
+		_candlePair = pair;
+
+		await SendMessageAsync(reqMessage);
+
+		_receiveCancellationTokenSource = new CancellationTokenSource();
+
+		_ = ReceiveMessagesAsync(
+			ProcessCandleResponseMessage,
+			_receiveCancellationTokenSource.Token);
 	}
 
-	public void UnsubscribeCandles(string pair)
+	public async Task UnsubscribeCandles(string pair)
 	{
-		throw new NotImplementedException();
+		if (_webSocketClient.State != WebSocketState.Open)
+			return;
+
+		if (_receiveCancellationTokenSource != null)
+			await _receiveCancellationTokenSource.CancelAsync();
+
+		var reqMessage = new RequestMessageDTO
+		{
+			@event = "unsubscribe",
+			chanId = _candleChanId
+		};
+
+		await SendMessageAsync(reqMessage);
 	}
 
 	public async Task SubscribeTrades(string pair)
@@ -85,7 +123,9 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 
 		_receiveCancellationTokenSource = new CancellationTokenSource();
 
-		_ = ReceiveMessagesAsync(_receiveCancellationTokenSource.Token);
+		_ = ReceiveMessagesAsync(
+			ProcessTradeResponseMessage,
+			_receiveCancellationTokenSource.Token);
 	}
 
 	public async Task UnsubscribeTrades(string pair)
@@ -125,7 +165,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 		}
 	}
 
-	private async Task ReceiveMessagesAsync(CancellationToken cancellationToken)
+	private async Task ReceiveMessagesAsync(Func<string, Task> processFunc, CancellationToken cancellationToken)
 	{
 		var buffer = new byte[1024 * 4]; // 1024 * 4 because it's MTU
 
@@ -158,7 +198,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 						cancellationToken);
 				} while (!res.EndOfMessage);
 
-				ProcessTradeResponseMessage(fullMessage.ToString());
+				processFunc(fullMessage.ToString());
 			}
 			catch (OperationCanceledException)
 			{
@@ -172,13 +212,82 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 			}
 	}
 
+	private async Task ProcessCandleResponseMessage(string message)
 	{
 		using var jsonDocument = JsonDocument.Parse(message);
 
 		var jsonElement = jsonDocument.RootElement;
 
 		if (jsonElement.ValueKind == JsonValueKind.Object)
+		{
+			if (jsonElement.TryGetProperty("chanId", out var chanIdValue))
+				_candleChanId = chanIdValue.ToString();
+
 			return;
+		}
+
+		Candle candle;
+
+		if (_isFirstTrade)
+		{
+			foreach (var candleData in jsonElement[1].EnumerateArray())
+			{
+				var highPrice = candleData[3].GetDecimal();
+				var lowPrice = candleData[4].GetDecimal();
+				var volume = candleData[5].GetDecimal();
+
+				var averagePrice = (highPrice + lowPrice) / 2;
+
+				var totalPrice = averagePrice * volume;
+
+				candle = new Candle(
+					_candlePair,
+					"snapshot",
+					candleData[1].GetDecimal(),
+					candleData[2].GetDecimal(),
+					highPrice,
+					lowPrice,
+					totalPrice,
+					volume,
+					DateTimeOffset.FromUnixTimeMilliseconds(candleData[0].GetInt64())
+				);
+
+				CandleSeriesProcessing?.Invoke(candle);
+			}
+
+			_isFirstTrade = false;
+		}
+		else
+		{
+			if (jsonElement[1].ToString() == "hb")
+				return;
+
+			var candleData = jsonElement[1];
+
+			var highPrice = candleData[3].GetDecimal();
+			var lowPrice = candleData[4].GetDecimal();
+			var volume = candleData[5].GetDecimal();
+
+			var averagePrice = (highPrice + lowPrice) / 2;
+
+			var totalPrice = averagePrice * volume;
+
+			candle = new Candle(
+				_candlePair,
+				"cu", // cu(candle update)
+				candleData[1].GetDecimal(),
+				candleData[2].GetDecimal(),
+				highPrice,
+				lowPrice,
+				totalPrice,
+				volume,
+				DateTimeOffset.FromUnixTimeMilliseconds(candleData[0].GetInt64())
+			);
+
+			CandleSeriesProcessing?.Invoke(candle);
+		}
+	}
+
 	private async Task ProcessTradeResponseMessage(string message)
 	{
 		using var jsonDocument = JsonDocument.Parse(message);
@@ -208,6 +317,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 					tradeData[3].GetDecimal(),
 					tradeData[2].GetDecimal() > 0 ? "buy" : "sell"
 				);
+
 
 				NewBuyTrade?.Invoke(trade);
 			}

@@ -2,6 +2,48 @@
 
 public class Candle
 {
+	public Candle(
+		string pair,
+		string messageType,
+		decimal openPrice,
+		decimal closePrice,
+		decimal highPrice,
+		decimal lowPrice,
+		decimal totalPrice,
+		decimal totalVolume,
+		DateTimeOffset openTime)
+	{
+		Pair = pair;
+		MessageType = messageType;
+		OpenPrice = openPrice;
+		ClosePrice = closePrice;
+		HighPrice = highPrice;
+		LowPrice = lowPrice;
+		TotalPrice = totalPrice;
+		TotalVolume = totalVolume;
+		OpenTime = openTime;
+	}
+	
+	public Candle(
+		string pair,
+		decimal openPrice,
+		decimal closePrice,
+		decimal highPrice,
+		decimal lowPrice,
+		decimal totalPrice,
+		decimal totalVolume,
+		DateTimeOffset openTime)
+	{
+		Pair = pair;
+		OpenPrice = openPrice;
+		ClosePrice = closePrice;
+		HighPrice = highPrice;
+		LowPrice = lowPrice;
+		TotalPrice = totalPrice;
+		TotalVolume = totalVolume;
+		OpenTime = openTime;
+	}
+
 	/// <summary>
 	///     Валютная пара
 	/// </summary>
@@ -42,6 +84,12 @@ public class Candle
 	///     Время
 	/// </summary>
 	public DateTimeOffset OpenTime { get; set; }
+
+	// Поле добавленно для отображения типа WebSocket сообщения
+	/// <summary>
+	///     Тип WebSocket сообщения
+	/// </summary>
+	public string MessageType { get; set; } = string.Empty;
 
 	public override string ToString()
 	{

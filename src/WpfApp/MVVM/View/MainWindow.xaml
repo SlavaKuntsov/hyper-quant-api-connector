@@ -154,7 +154,119 @@
             </StackPanel>
 
         </TabItem>
-        
+
+        <TabItem Header="Candles WebSocket">
+
+            <StackPanel
+                Orientation="Vertical">
+
+                <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+
+                    <Label Content="Trading pairs:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Period in sec:"
+                           VerticalAlignment="Center"
+                           Margin="0 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             Margin="0 0 10 0"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding CandlePeriodInSec, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Amount:"
+                           VerticalAlignment="Center"
+                           Margin="10 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Label Content="Sort:"
+                           VerticalAlignment="Center"
+                           Margin="10 0 10 0" />
+
+                    <TextBox Padding="8 2"
+                             MinWidth="100"
+                             VerticalAlignment="Center"
+                             Text="{Binding Sort, UpdateSourceTrigger=PropertyChanged}" />
+
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+
+                    <Label Content="From:" VerticalAlignment="Center" Margin="10 0 10 0" />
+                    <DatePicker SelectedDate="{Binding FromDate, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center" Margin="0 0 10 0" />
+
+                    <TextBox Text="{Binding FromTime, UpdateSourceTrigger=PropertyChanged}"
+                             Width="100" VerticalAlignment="Center" Margin="0 0 10 0"
+                             ToolTip="Enter time in HH:mm format" />
+
+                    <Label Content="To:" VerticalAlignment="Center" Margin="10 0 10 0" />
+                    <DatePicker SelectedDate="{Binding ToDate, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center" Margin="0 0 10 0" />
+
+                    <TextBox Text="{Binding ToTime, UpdateSourceTrigger=PropertyChanged}"
+                             Width="100" VerticalAlignment="Center" Margin="0 0 10 0"
+                             ToolTip="Enter time in HH:mm format" />
+
+                </StackPanel>
+
+                <StackPanel
+                    Orientation="Horizontal">
+
+                    <Button
+                        Content="Subscribe candles"
+                        Command="{Binding SubscribeCandlesCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="20 10 10 10" />
+
+                    <Button
+                        Content="Unsubscribe candles"
+                        Command="{Binding UnsubscribeCandlesCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        Margin="10" />
+
+                </StackPanel>
+
+                <ListView ItemsSource="{Binding CandlesWebSocket}" Margin="10" Height="250"
+                          VirtualizingStackPanel.IsVirtualizing="True"
+                          VirtualizingStackPanel.VirtualizationMode="Recycling"
+                          ScrollViewer.CanContentScroll="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Pair" DisplayMemberBinding="{Binding Pair}" />
+                            <GridViewColumn Header="MessageType" DisplayMemberBinding="{Binding MessageType}" />
+                            <GridViewColumn Header="OpenPrice" DisplayMemberBinding="{Binding OpenPrice}" />
+                            <GridViewColumn Header="HighPrice" DisplayMemberBinding="{Binding HighPrice}" />
+                            <GridViewColumn Header="LowPrice" DisplayMemberBinding="{Binding LowPrice}" />
+                            <GridViewColumn Header="ClosePrice" DisplayMemberBinding="{Binding ClosePrice}" />
+                            <GridViewColumn Header="TotalPrice" DisplayMemberBinding="{Binding TotalPrice}" />
+                            <GridViewColumn Header="TotalVolume" DisplayMemberBinding="{Binding TotalVolume}" />
+                            <GridViewColumn Header="OpenTime" DisplayMemberBinding="{Binding OpenTime}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+            </StackPanel>
+
+        </TabItem>
+
         <TabItem Header="Trades Rest">
 
             <StackPanel
@@ -206,13 +318,13 @@
             </StackPanel>
 
         </TabItem>
-        
+
         <TabItem Header="Trades WebSocket">
-            
+
             <StackPanel
                 Orientation="Vertical">
-                
-                <StackPanel 
+
+                <StackPanel
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
 
@@ -224,21 +336,21 @@
                              MinWidth="100"
                              VerticalAlignment="Center"
                              Text="{Binding TradingPair, UpdateSourceTrigger=PropertyChanged}" />
-                
+
                     <Button
                         Content="Subscribe trades"
                         Command="{Binding SubscribeTradesCommand}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Margin="20 10 10 10" />
-                    
+
                     <Button
-                        Content="Subscribe trades"
+                        Content="Unsubscribe trades"
                         Command="{Binding UnsubscribeTradesCommand}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         Margin="10" />
-                    
+
                 </StackPanel>
 
                 <ListView ItemsSource="{Binding TradesWebSocket}" Margin="10" Height="250"
@@ -257,9 +369,9 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                
+
             </StackPanel>
-            
+
         </TabItem>
 
         <TabItem Header="Ticker">

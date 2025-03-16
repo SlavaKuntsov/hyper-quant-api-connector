@@ -25,6 +25,9 @@ public partial class MainViewModel : ObservableObject
 
 	[ObservableProperty]
 	private ObservableCollection<Candle> candles = [];
+	
+	[ObservableProperty]
+	private ObservableCollection<Candle> candlesWebSocket = [];
 
 	[ObservableProperty]
 	private DateTime? fromDate;
@@ -111,6 +114,50 @@ public partial class MainViewModel : ObservableObject
 	}
 
 	[RelayCommand]
+	private async Task SubscribeCandlesAsync()
+	{
+		CandlesWebSocket.Clear();
+		
+		_webSocketConnector.CandleSeriesProcessing += OnWebSocketConnectorOnCandleProcessing;
+
+		var from = CombineDateAndTime(FromDate, FromTime)
+					?? DateTimeOffset.UtcNow.AddDays(-1);
+
+		var to = CombineDateAndTime(ToDate, ToTime)
+				?? DateTimeOffset.UtcNow;
+
+		await _webSocketConnector.SubscribeCandles(
+			tradingPair,
+			candlePeriodInSec,
+			sort,
+			from,
+			to,
+			amount);
+	}
+
+	[RelayCommand]
+	private async Task UnsubscribeCandlesAsync()
+	{
+		_webSocketConnector.CandleSeriesProcessing -= OnWebSocketConnectorOnCandleProcessing;
+		
+		await _webSocketConnector.UnsubscribeCandles(tradingPair);
+	}
+	
+	private void OnWebSocketConnectorOnCandleProcessing(Candle candle)
+	{
+		CandlesWebSocket.Insert(0, candle);
+	}
+	
+	[RelayCommand]
+	private async Task GetNewTradesAsync()
+	{
+		Trades.Clear();
+
+		await foreach (var trade in _restApiConnector.GetNewTradesAsync(tradingPair, amount))
+			Trades.Add(trade);
+	}
+
+	[RelayCommand]
 	private async Task SubscribeTradesAsync()
 	{
 		TradesWebSocket.Clear();
@@ -138,15 +185,6 @@ public partial class MainViewModel : ObservableObject
 	private void OnWebSocketConnectorOnNewBuyTrade(Trade trade)
 	{
 		TradesWebSocket.Insert(0, trade);
-	}
-
-	[RelayCommand]
-	private async Task GetNewTradesAsync()
-	{
-		Trades.Clear();
-
-		await foreach (var trade in _restApiConnector.GetNewTradesAsync(tradingPair, amount))
-			Trades.Add(trade);
 	}
 
 	[RelayCommand]

@@ -71,17 +71,16 @@ public class RestApiConnector(HttpClient httpClient) : IRestApiConnector
 
 			var totalPrice = averagePrice * volume;
 
-			var newCandle = new Candle
-			{
-				Pair = pair,
-				OpenPrice = candle[1].GetDecimal(),
-				ClosePrice = candle[2].GetDecimal(),
-				HighPrice = highPrice,
-				LowPrice = lowPrice,
-				TotalPrice = totalPrice,
-				TotalVolume = volume,
-				OpenTime = DateTimeOffset.FromUnixTimeMilliseconds(candle[0].GetInt64())
-			};
+			var newCandle = new Candle(
+				pair,
+				candle[1].GetDecimal(),
+				candle[2].GetDecimal(),
+				highPrice,
+				lowPrice,
+				totalPrice,
+				volume,
+				DateTimeOffset.FromUnixTimeMilliseconds(candle[0].GetInt64())
+			);
 
 			yield return newCandle;
 		}

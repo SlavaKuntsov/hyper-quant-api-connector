@@ -6,14 +6,14 @@ public interface IWebSocketConnector
 {
 	event Action<Candle> CandleSeriesProcessing;
 
-	void SubscribeCandles(
+	Task SubscribeCandles(
 		string pair,
 		int periodInSec,
 		int? sort = null,
 		DateTimeOffset? from = null,
 		DateTimeOffset? to = null,
 		long? count = null);
-	void UnsubscribeCandles(string pair);
+	Task UnsubscribeCandles(string pair);
 
 
 	event Action<Trade> NewBuyTrade;
