@@ -9,7 +9,10 @@ namespace ApiConnector.ApiConnectors;
 
 public class WebSocketConnector : IWebSocketConnector, IDisposable
 {
+
 	private static string _tradePair;
+
+	private static string _tradeChanId;
 
 	private readonly string _baseUrl;
 
@@ -96,8 +99,7 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 		var reqMessage = new RequestMessageDTO
 		{
 			@event = "unsubscribe",
-			channel = "trades",
-			symbol = $"t{pair}"
+			chanId = _tradeChanId
 		};
 
 		await SendMessageAsync(reqMessage);
@@ -170,7 +172,6 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 			}
 	}
 
-	private void ProcessTradeResponseMessage(string message)
 	{
 		using var jsonDocument = JsonDocument.Parse(message);
 
@@ -178,6 +179,19 @@ public class WebSocketConnector : IWebSocketConnector, IDisposable
 
 		if (jsonElement.ValueKind == JsonValueKind.Object)
 			return;
+	private async Task ProcessTradeResponseMessage(string message)
+	{
+		using var jsonDocument = JsonDocument.Parse(message);
+
+		var jsonElement = jsonDocument.RootElement;
+
+		if (jsonElement.ValueKind == JsonValueKind.Object)
+		{
+			if (jsonElement.TryGetProperty("chanId", out var chanIdValue))
+				_tradeChanId = chanIdValue.ToString();
+
+			return;
+		}
 
 		Trade trade;
 
