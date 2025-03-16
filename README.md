@@ -151,3 +151,5 @@ public class Cryptocurrency
     public decimal Amount { get; set; }  
 }
 ```
+#### P.S.
+`ConsoleApp` в директории `src` просьба игнорировать (исользовался при разработке).
